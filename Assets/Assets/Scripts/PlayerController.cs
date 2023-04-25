@@ -9,6 +9,12 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float rayDistance = 10f;
     [SerializeField] private AnimatorController animatorController;
     [SerializeField] private SpriteRenderer spriteRenderer;
+    [SerializeField] private BulletController bulletPrefab;
+    [SerializeField] private CameraController cameraReference;
+
+    private void Start() {
+        GetComponent<HealthBarController>().onHit += cameraReference.CallScreenShake;
+    }
 
     private void Update() {
         Vector2 movementPlayer = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
@@ -16,14 +22,16 @@ public class PlayerController : MonoBehaviour
 
         animatorController.SetVelocity(velocityCharacter: myRBD2.velocity.magnitude);
 
-        Vector2 mouseInput = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        Vector3 mouseInput = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
         CheckFlip(mouseInput.x);
     
-        Debug.DrawRay(transform.position, mouseInput.normalized * rayDistance, Color.red);
+        Vector3 distance = mouseInput - transform.position;
+        Debug.DrawRay(transform.position, distance * rayDistance, Color.red);
 
         if(Input.GetMouseButtonDown(0)){
-            Debug.Log("Right Click");
+            BulletController myBullet =  Instantiate(bulletPrefab, transform.position, Quaternion.identity);
+            myBullet.SetUpVelocity(distance.normalized, gameObject.tag);
         }else if(Input.GetMouseButtonDown(1)){
             Debug.Log("Left Click");
         }

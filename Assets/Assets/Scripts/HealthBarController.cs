@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using TMPro;
+using System;
 
 public class HealthBarController : MonoBehaviour
 {
@@ -16,6 +16,9 @@ public class HealthBarController : MonoBehaviour
     private float TargetWidth => currentValue * _fullWidth / maxValue;
     private Coroutine updateHealthBarCoroutine;
 
+    public event Action onHit;
+    public event Action onDeath;
+
     private void Start() {
         currentValue = maxValue;
         _fullWidth = healthBar.rect.width;
@@ -27,11 +30,16 @@ public class HealthBarController : MonoBehaviour
     /// <param name="amount">El valor de vida modificada.</param>
     public void UpdateHealth(int amount){
         currentValue = Mathf.Clamp(currentValue + amount, 0, maxValue);
+        onHit?.Invoke();
 
         if(updateHealthBarCoroutine != null){
             StopCoroutine(updateHealthBarCoroutine);
         }
         updateHealthBarCoroutine = StartCoroutine(AdjustWidthBar(amount));
+
+        if(currentValue == 0){
+            onDeath?.Invoke();
+        }
     }
 
     IEnumerator AdjustWidthBar(int amount){
@@ -50,14 +58,5 @@ public class HealthBarController : MonoBehaviour
 
     private Vector2 SetWidth(RectTransform t, float width){
         return new Vector2(width, t.rect.height);
-    }
-
-    private void Update() {
-
-        if(Input.GetMouseButtonDown(0)){
-            UpdateHealth(20);
-        }else if(Input.GetMouseButtonDown(1)){
-            UpdateHealth(-20);
-        }
     }
 }
